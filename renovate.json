@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>monumental-archive/.github#v1.53.1"],
+  "extends": ["github>monumental-archive/.github#v1.61.1"],
   "customManagers": [
     {
       "description": "Generic: '# renovate:' comments above Dockerfile ARG version pins. Repo-local because the shape is this repo's: the apt versions are ARGs so the pins carry Renovate coverage at all (an inline version in the apt line is tracked by nothing), and no other repo in the org has one. Renovate's customManagers is documented mergeable, so this appends to the org preset's two rather than replacing them. depName and packageName are captured separately: packageName is what the deb datasource looks up and what the registryUrls rule below selects on, depName is the display name the org's commit-subject template interpolates \u2014 'postgresql-18-postgis-3' mints an 81-column subject, nine past the ceiling, and a subject nobody can shorten once it is a commit is what lint:subject-budget exists to catch. The short name lives here rather than as a commitMessageTopic in the org preset because a PGDG package in one repo's Dockerfile is not an org-wide dependency; the belt delivers policy, not this repo's package names.",
