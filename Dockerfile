@@ -12,7 +12,7 @@
 # The official image is also genuinely multi-arch; postgis/postgis
 # publishes amd64 only.
 
-FROM postgres:18-trixie@sha256:5a5a84b19854a9ffaa54082c166ff4ec27473a361e496e5ea167f298f2da9722 AS base
+FROM postgres:18-trixie@sha256:6737476511d43c91c7cee9aa027b5d30458b7ed0f3af663ff8715c14ce4355b6 AS base
 
 # --- edtf-postgres: prebuilt, attested, digest-pinned ----------------------
 # EDTF validation as a native extension: the same edtf-core the archive's
