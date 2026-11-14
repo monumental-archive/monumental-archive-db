@@ -1,8 +1,15 @@
 # monumental-archive-db
 
+<!-- badges:begin -->
 [![ci](https://github.com/monumental-archive/monumental-archive-db/actions/workflows/ci.yml/badge.svg)](https://github.com/monumental-archive/monumental-archive-db/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/monumental-archive/monumental-archive-db/badge)](https://scorecard.dev/viewer/?uri=github.com/monumental-archive/monumental-archive-db)
+[![SLSA source](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmonumental-archive%2Fmonumental-archive-db%2Flevels%2Fmonumental-archive-db%2Fsource.shield.json)](https://raw.githubusercontent.com/monumental-archive/monumental-archive-db/levels/monumental-archive-db/source.report.json)
+[![SLSA build](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmonumental-archive%2Fmonumental-archive-db%2Flevels%2Fmonumental-archive-db%2Fbuild.shield.json)](https://raw.githubusercontent.com/monumental-archive/monumental-archive-db/levels/monumental-archive-db/build.report.json)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13998/badge)](https://www.bestpractices.dev/projects/13998)
+[![OpenSSF Baseline](https://www.bestpractices.dev/projects/13998/baseline)](https://www.bestpractices.dev/projects/13998)
+<!-- pending (human step): REUSE — register at https://api.reuse.software/register (no account: name, email, project URL, confirmation link), then set 'reuse registered' in .badge-states and re-run fix:badges -->
+[![fair-software](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%E2%97%8F%20%E2%97%8B%20%E2%97%8B%20%E2%97%8F-orange)](https://fair-software.eu)
+<!-- badges:end -->
 [![license](https://img.shields.io/badge/license-AGPL--3.0--only-blue.svg)](LICENSE)
 
 The [Monumental Archive](https://github.com/monumental-archive)'s
