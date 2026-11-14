@@ -8,9 +8,9 @@
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13998/badge)](https://www.bestpractices.dev/projects/13998)
 [![OpenSSF Baseline](https://www.bestpractices.dev/projects/13998/baseline)](https://www.bestpractices.dev/projects/13998)
 <!-- pending (human step): REUSE — register at https://api.reuse.software/register (no account: name, email, project URL, confirmation link), then set 'reuse registered' in .badge-states and re-run fix:badges -->
+[![license](https://img.shields.io/badge/license-AGPL--3.0--only-blue)](LICENSES/)
 [![fair-software](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%E2%97%8F%20%E2%97%8B%20%E2%97%8B%20%E2%97%8F-orange)](https://fair-software.eu)
 <!-- badges:end -->
-[![license](https://img.shields.io/badge/license-AGPL--3.0--only-blue.svg)](LICENSE)
 
 The [Monumental Archive](https://github.com/monumental-archive)'s
 PostgreSQL image: official `postgres:18` (Debian trixie) plus exactly
