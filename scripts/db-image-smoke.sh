@@ -14,7 +14,11 @@ set -euo pipefail
 image=${1:?usage: db-image-smoke.sh <image-ref>}
 container="db-smoke-$$"
 
-trap 'docker rm -f "${container}" > /dev/null 2>&1 || true' EXIT
+cleanup() {
+  docker rm -f "${container}" > /dev/null 2>&1 || true
+}
+rc=0
+trap 'rc=$?; cleanup; [[ -n ${org_done:-} || ${rc} -ne 0 ]] || rc=1; exit "${rc}"' EXIT
 
 docker run -d --name "${container}" -e POSTGRES_PASSWORD=smoke "${image}" > /dev/null
 
@@ -115,7 +119,8 @@ fi
 actual_edtf=$(q "select extversion from pg_extension where extname = 'edtf_postgres'")
 assert "edtf_postgres version is the pinned one" "${expected_edtf}" "${actual_edtf}"
 
-if [[ ${fail} -eq 0 ]]; then
-  echo "db-smoke: ${image} passed every assertion"
+if [[ ${fail} -ne 0 ]]; then
+  exit 1
 fi
-exit "${fail}"
+echo "db-smoke: ${image} passed every assertion"
+org_done=1
