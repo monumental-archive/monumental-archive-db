@@ -9,7 +9,8 @@
 [![OpenSSF Baseline](https://www.bestpractices.dev/projects/13998/baseline)](https://www.bestpractices.dev/projects/13998)
 [![REUSE status](https://api.reuse.software/badge/github.com/monumental-archive/monumental-archive-db)](https://api.reuse.software/info/github.com/monumental-archive/monumental-archive-db)
 [![license](https://img.shields.io/badge/license-AGPL--3.0--only-blue)](LICENSES/)
-[![fair-software](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%E2%97%8F%20%E2%97%8B%20%E2%97%8B%20%E2%97%8F-orange)](https://fair-software.eu)
+[![ghcr monumental-archive-db](https://img.shields.io/badge/ghcr.io-monumental--archive%2Fmonumental--archive--db-blue)](https://github.com/orgs/monumental-archive/packages/container/package/monumental-archive-db)
+[![fair-software](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%E2%97%8F%20%E2%97%8F%20%E2%97%8B%20%E2%97%8F-orange)](https://fair-software.eu)
 <!-- badges:end -->
 
 The [Monumental Archive](https://github.com/monumental-archive)'s
