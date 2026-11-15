@@ -12,7 +12,7 @@
 # The official image is also genuinely multi-arch; postgis/postgis
 # publishes amd64 only.
 
-FROM postgres:18-trixie@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b452253ec3dcfc4336 AS base
+FROM postgres:18-trixie@sha256:2ea8630df176ad090ec92136dee850397c5af8781e4bcf2e4162593691c61bbc AS base
 
 # --- edtf-postgres: prebuilt, attested, digest-pinned ----------------------
 # EDTF validation as a native extension: the same edtf-core the archive's
@@ -20,13 +20,13 @@ FROM postgres:18-trixie@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b45
 # the publisher's OCI image rather than compiled here — the image compiles
 # nothing, which is what makes a native arm64 build cheap.
 #
-# A BUILD STAGE, never our base. This image IS postgres:18-trixie with the
-# extension installed, so taking it as a base would put the OS packages
-# that carry CVEs in a layer frozen at edtf's build time and refreshable
-# only by an edtf release — the exact failure
-# docs/decisions/0001-own-the-installation.md was written about. Copying
-# two paths out of a stage receives none of that image's base layers, so
-# the apt layer below stays ours to refresh on the weekly rebuild.
+# A BUILD STAGE, never our base. This is edtf's `-artifact` image: FROM
+# scratch, holding the extension's files and nothing else, in both the
+# Debian layout the two COPY lines below read and the CNPG layout
+# (/lib, /share/extension) this image does not use. It has no OS layer to
+# inherit, and it stays a stage regardless: the runtime base is ours, so
+# the apt layer below stays ours to refresh on the weekly rebuild
+# (docs/decisions/0001-own-the-installation.md).
 #
 # Pinned by manifest-INDEX digest, which commits to both the amd64 and the
 # arm64 manifest: one pin fixes the bytes for both architectures whichever
@@ -36,21 +36,22 @@ FROM postgres:18-trixie@sha256:74935e72241653ca55e0414067e6d8763aceb8a810eb51b45
 # mismatch, and Renovate's native Dockerfile manager bumps tag and digest
 # together — the checksums this replaced had to be hand-edited.
 # The digest proves the bytes did not change; proving they are the RIGHT
-# bytes — an attestation over this exact digest naming edtf's publish
-# workflow at the ref that could legitimately have minted it — is the
-# canon's base-approval machinery, not this repository's. The hand-rolled
-# gate that used to do it here was deleted at the import (.github#670): a
-# second derivation beside the canonical one passes its own exam. The
-# canon's approval walk is pgrx-scoped today and does not reach a
-# first-party base in a sibling repo, which is filed as .github#715 and is
-# the gate this line answers to once it lands.
+# bytes — an attestation over this exact digest, signed by the org signer
+# at the release tag the pinned version names — is the canon's
+# base-approval machinery, not this repository's. The shared image build
+# verifies every first-party FROM that way before it builds anything, and
+# fails closed (.github#715); the hand-rolled gate that used to do it here
+# was deleted at the import (.github#670), because a second derivation
+# beside the canonical one passes its own exam. That check derives the
+# release tag from this line's tag, so the tag must stay a version.
 #
-# THIS REF IS THE ONE KNOWN LEFTOVER OF THE IMPORT (2026-08-21). It still
-# names the pre-transfer publisher because an image published before the
-# transfer cannot carry an org-identity attestation at all; it is repinned
-# to ghcr.io/monumental-archive/edtf-postgres, at the digest of edtf's
-# first org-path release, in this repo's follow-up PR (#5, .github#669).
-FROM ghcr.io/carlallenn/edtf-postgres:1.2.3-pg18@sha256:4ee81e447e122deeb6c7361ad48d33a518a630d116318e6816f286b06c33b0e8 AS edtf
+# The .so is compiled against one postgres minor and can need symbols an
+# older minor lacks, which the `pg18` in the tag does not say. Measured
+# 2026-11-15: 1.3.4 was built against 18.7 and fails to load on 18.6
+# ("undefined symbol: heap_datum_check"), so this pin and the base digest
+# above moved together. Nothing but the smoke test catches that — it
+# loads the library in the server it ships with, before any push.
+FROM ghcr.io/monumental-archive/edtf-postgres:1.3.4-pg18-artifact@sha256:6c6aa265a752e13330ab370e60eb4490b7883204a97c7dd6b546d0ea27fdc92a AS edtf
 
 # --- runtime ---------------------------------------------------------------
 FROM base
@@ -70,6 +71,14 @@ FROM base
 # name mints an 81-column subject, nine past the org ceiling, and a
 # machine-minted subject cannot be shortened after the fact — so the
 # short name is declared here, where the pin is (renovate.json).
+#
+# The -scripts package is named and pinned to the SAME version, never left
+# to apt: postgresql-18-postgis-3 depends on it unversioned, so apt
+# resolves the newest one, and PostGIS refuses CREATE EXTENSION when the
+# scripts are newer than the library. Measured 2026-11-15: library pinned
+# at 3.6.4, scripts resolved to 3.7.0, "extension scripts version 3.7.0
+# cannot use older library version 3.6.4". The two are built from one
+# source package, so one ARG is the right number of pins.
 # renovate: datasource=deb depName=postgis packageName=postgresql-18-postgis-3
 ARG POSTGIS_VERSION=3.6.4+dfsg-2.pgdg13+1
 # renovate: datasource=deb depName=pgaudit packageName=postgresql-18-pgaudit
@@ -77,15 +86,15 @@ ARG PGAUDIT_VERSION=18.0-3.pgdg13+1
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     "postgresql-18-postgis-3=${POSTGIS_VERSION}" \
+    "postgresql-18-postgis-3-scripts=${POSTGIS_VERSION}" \
     "postgresql-18-pgaudit=${PGAUDIT_VERSION}" \
   && rm -rf /var/lib/apt/lists/*
 
 # Only the extension itself crosses the stage boundary. Globbed rather than
-# copying /usr/share/postgresql/18/extension/ wholesale (the form upstream's
-# README suggests): that directory in the edtf image also holds the control
-# files of ITS base image, and copying it whole would silently replace this
-# base's copies with those — inheriting files we did not install, by the
-# back door, in the one stage that exists to avoid exactly that.
+# copying /usr/share/postgresql/18/extension/ wholesale: the artifact image
+# holds only edtf's own files there today, but a glob keeps that true of
+# this image whatever the stage later contains — a directory copied whole
+# would replace this base's control files with whatever sat beside them.
 COPY --from=edtf /usr/lib/postgresql/18/lib/edtf_postgres.so /usr/lib/postgresql/18/lib/
 COPY --from=edtf /usr/share/postgresql/18/extension/edtf_postgres* /usr/share/postgresql/18/extension/
 

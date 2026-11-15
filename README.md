@@ -22,30 +22,38 @@ WASM, so the two can never diverge).
 
 ## Where the image is published
 
-**Publishing is paused.** This repository joined the organisation on
-2026-08-21 and its own publish pipeline was deleted with the rest of the
-private toolchain; the org's continuous archetype
-(`.github/workflows/continuous.yml`, the shared workflow every org image
-publishes through) is wired in the follow-up pull request that also
-repins the extension base image
-([#5](https://github.com/monumental-archive/monumental-archive-db/issues/5)).
-Until then no new digest is published from this tree.
+`ghcr.io/monumental-archive/monumental-archive-db`, published by the
+org's continuous archetype (`.github/workflows/continuous.yml`, a stub
+calling the shared workflow every org image stream publishes through):
+on every merge to `main`, and on a weekly schedule. `:latest` is the
+stream tag; every digest is signed by the org signer and carries build
+provenance. Consumers pin the digest; the tag exists so Renovate has
+something to resolve digest updates against.
+
+Nothing was published between the transfer on 2026-08-21, when this
+repository's own publish pipeline was deleted with the rest of the
+private toolchain, and the pull request that wired the stub.
 
 - **Published before the transfer:** `ghcr.io/carlallenn/monumental-archive-db`,
   signed keylessly by the pre-transfer publish workflow. Those digests
   still verify against the identity they were minted under, which is
   recorded verbatim below because it is not derivable from this tree any
   more.
-- **After the continuous stub lands:**
-  `ghcr.io/monumental-archive/monumental-archive-db`, `:latest` the
-  stream tag, every digest signed by the org signer and carrying build
-  provenance. Consumers pin the digest; the tag exists so Renovate has
-  something to resolve digest updates against.
 
 The transfer flips the workflow identity every signature is anchored to,
 so a consumer pinning the old identity pattern must move to the new one
 when they move to the new path — the two are different publishers and
 that is the point of anchoring at all.
+
+### Verifying a digest
+
+```sh
+gh attestation verify \
+  oci://ghcr.io/monumental-archive/monumental-archive-db@<digest> \
+  --owner monumental-archive \
+  --signer-workflow monumental-archive/signer/.github/workflows/sign.yml \
+  --source-ref refs/heads/main
+```
 
 ### Verifying a digest published before the transfer
 
@@ -76,8 +84,8 @@ cosign verify ghcr.io/carlallenn/monumental-archive-db@<digest> \
   every deliberate pin intact. The reasoning is
   [docs/decisions/0001-own-the-installation.md](docs/decisions/0001-own-the-installation.md).
 
-The first three describe the org's continuous archetype, which this
-repository adopts at the follow-up PR above; the weekly rebuild is that
+The first three are properties of the org's continuous archetype, which
+this repository publishes through; the weekly rebuild is that
 archetype's schedule leg.
 
 ## Tags
