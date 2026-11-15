@@ -7,7 +7,7 @@
 [![SLSA build](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fmonumental-archive%2Fmonumental-archive-db%2Flevels%2Fmonumental-archive-db%2Fbuild.shield.json)](https://raw.githubusercontent.com/monumental-archive/monumental-archive-db/levels/monumental-archive-db/build.report.json)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13998/badge)](https://www.bestpractices.dev/projects/13998)
 [![OpenSSF Baseline](https://www.bestpractices.dev/projects/13998/baseline)](https://www.bestpractices.dev/projects/13998)
-<!-- pending (human step): REUSE — register at https://api.reuse.software/register (no account: name, email, project URL, confirmation link), then set 'reuse registered' in .badge-states and re-run fix:badges -->
+[![REUSE status](https://api.reuse.software/badge/github.com/monumental-archive/monumental-archive-db)](https://api.reuse.software/info/github.com/monumental-archive/monumental-archive-db)
 [![license](https://img.shields.io/badge/license-AGPL--3.0--only-blue)](LICENSES/)
 [![fair-software](https://img.shields.io/badge/fair--software.eu-%E2%97%8F%20%E2%97%8F%20%E2%97%8B%20%E2%97%8B%20%E2%97%8F-orange)](https://fair-software.eu)
 <!-- badges:end -->
