@@ -53,23 +53,22 @@ added it needs `[task_config] shell = "bash -euo pipefail -c"` beside it
   scheduled rebuild caps exposure at seven days.
 - **edtf_postgres supply chain**: consumed as an OCI image pinned by
   manifest-index digest (nothing is compiled in this image). That image
-  is *postgres:18-trixie plus the extension*, so it is a **build stage
-  only** — `FROM`-ing it as our base would inherit an apt layer we
-  cannot refresh and break "own the installation" above. The runtime
+  is edtf's `-artifact` variant — `FROM scratch`, the extension's files
+  only — and it is a **build stage only**: the runtime base stays ours,
+  which is what "own the installation" above requires. The runtime
   stage globs `edtf_postgres*` out of the two extension paths rather
   than copying the extension directory wholesale, so none of its base
   files cross over. The digest is fail-closed in BuildKit. Proving the
   bytes are the *right* bytes — an attestation over that digest naming
-  edtf's publish workflow — is the canon's base-approval machinery; the
-  hand-rolled gate this repo used to carry was deleted at the import,
-  and the canon's walk being pgrx-scoped is filed as `.github#715`.
-- **The `FROM` line is the import's one known leftover.** It still names
-  the pre-transfer publisher because an image published before the
-  transfer cannot carry an org-identity attestation. It is repinned to
-  the org path, at the digest of edtf's first org-path release, in the
-  follow-up PR (#5, `.github#669`), which also wires the continuous
-  publish stub. `scripts/db-image-smoke.sh` parses that same `FROM` line
-  for the expected extension version, so the two move together.
+  the org signer at the release tag — is the canon's base-approval
+  machinery: the shared image build verifies every first-party `FROM`
+  before building and fails closed (`.github#715`). The hand-rolled gate
+  this repo used to carry was deleted at the import.
+- **The edtf `FROM` line is read by two things besides BuildKit.** The
+  shared build derives the release tag to verify against from its tag
+  (`1.3.4-pg18-artifact` → `refs/tags/v1.3.4`), and
+  `scripts/db-image-smoke.sh` parses the same line for the expected
+  extension version. Keep the `<version>-pg<major>-artifact` shape.
 - **Renovate pin convention**: apt versions live in `ARG *_VERSION=`
   lines with a `# renovate:` comment above them — an inline version in
   an apt line would silently lose Renovate coverage. Image pins need
@@ -87,7 +86,7 @@ added it needs `[task_config] shell = "bash -euo pipefail -c"` beside it
   (`USER 999`) so an orchestrator enforcing runAsNonRoot can verify it.
 - **Multi-arch without QEMU**: amd64 and arm64 each build and smoke on
   native runners. That property belongs to the org's shared image build,
-  which this repository calls once the continuous stub lands.
+  which `.github/workflows/continuous.yml` calls.
 - **Smoke-test trap**: the official entrypoint starts postgres twice on
   a fresh volume; the smoke script waits for the *second* "ready to
   accept connections" before asserting. Preserve that if touching

@@ -27,13 +27,6 @@ with a deliberately fixed surface, so the honest roadmap is mostly about
   it from PGDG and on `edtf_postgres` publishing a `-pg19` image; it will
   land as a deliberate change with the decision recorded, not as a Renovate
   automerge.
-- **Shrink the edtf build stage** once
-  [edtf#144](https://github.com/monumental-archive/edtf/issues/144)
-  lands a minimal artifact image
-  ([#5](https://github.com/monumental-archive/monumental-archive-db/issues/5),
-  which is also the repin onto the org-path image).
-  The current build stage is postgres-plus-extension when all we copy out
-  is a handful of `edtf_postgres*` files.
 - **Finish the supply-chain scoring work.** The org's now, not this
   repo's: Scorecard runs from the canon's stub against a per-repo
   ratcheted floor in `security/scorecard-floors.txt`, REUSE compliance is

@@ -46,8 +46,7 @@ Three rules follow, and they are the reusable part:
    kind, which resolves them fresh from `trixie-security` with every
    deliberate pin intact. The mechanism moved at the 2026-08-21 import:
    the repo's own `publish.yml` is gone and the schedule is the org
-   continuous archetype's, wired in
-   [#5](https://github.com/monumental-archive/monumental-archive-db/issues/5).
+   continuous archetype's, called from `.github/workflows/continuous.yml`.
    Under a community base a rebuild refreshed nothing; under this
    arrangement it is a real remediation.
 3. **A digest proves the bytes did not change; an attestation proves they

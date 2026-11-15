@@ -13,15 +13,14 @@ the evidence that they hold.
 (`.github#670`) and its private toolchain was deleted with the import.
 Enforcement — every linter, the secret scan, the workflow audit — is the
 organisation's shared gate over the organisation's toolbelt, and the
-publish machinery is the org's continuous archetype. That archetype is
-not wired yet: it lands with the base-image repin
-([#5](https://github.com/monumental-archive/monumental-archive-db/issues/5)),
-and **between the import and that pull request this repository publishes
-nothing**. Everything below that describes the publish path describes the
-archetype this repository calls, and is an argument about what will be
-published rather than about a pipeline running today. That is stated
-plainly rather than smoothed over: an assurance case that claims a
-running control it does not have is the defect it exists to prevent.
+publish machinery is the org's continuous archetype, called from
+`.github/workflows/continuous.yml`. That stub landed with the base-image
+repin onto the org-path `edtf-postgres` image, and **between the import
+and that pull request this repository published nothing** — no merge
+publish and no weekly rebuild. The gap is stated plainly rather than
+smoothed over: an assurance case that claims a control ran when it did
+not is the defect it exists to prevent. Everything below that describes
+the publish path describes the archetype this repository calls.
 
 The unusual thing about this project is that it contains no application
 code. It is an *assembly*: a Dockerfile, three extension pins, and a
@@ -93,11 +92,11 @@ trail without any error — a silent failure of a security control.
   not of a local twin that was never published.
 - **The build-stage boundary.** `edtf-postgres` is a separate trust domain.
   It is crossed by exactly two `COPY --from` globs
-  ([Dockerfile:71-72](../Dockerfile#L71-L72)) — the `.so` and the
+  ([Dockerfile:98-99](../Dockerfile#L98-L99)) — the `.so` and the
   `edtf_postgres*` control/SQL files — rather than by `FROM`, and
-  deliberately not by copying the extension directory wholesale, because
-  that directory also holds *its* base image's control files. The narrow
-  glob is the boundary enforcement.
+  deliberately not by copying the extension directory wholesale, so
+  nothing else that stage ever holds can displace this base's control
+  files. The narrow glob is the boundary enforcement.
 - **The apt boundary.** PGDG and Debian archives are trusted for package
   contents, authenticated by apt's own repository signing, and pinned to
   exact versions under the Renovate convention.
