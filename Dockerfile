@@ -21,10 +21,12 @@ FROM postgres:18-trixie@sha256:2ea8630df176ad090ec92136dee850397c5af8781e4bcf2e4
 # nothing, which is what makes a native arm64 build cheap.
 #
 # A BUILD STAGE, never our base. This is edtf's `-artifact` image: FROM
-# scratch, holding the extension's files and nothing else, in both the
-# Debian layout the two COPY lines below read and the CNPG layout
-# (/lib, /share/extension) this image does not use. It has no OS layer to
-# inherit, and it stays a stage regardless: the runtime base is ours, so
+# scratch, holding the extension's files and nothing else. The two COPY
+# lines below read its /lib and /share/extension tree, the one layout the
+# canon keeps (.github#1298); the Debian /usr/... tree the pinned 1.3.4
+# image still carries beside it, byte-identical, leaves the artifact image
+# from the next edtf release on. It has no OS layer to inherit, and it
+# stays a stage regardless: the runtime base is ours, so
 # the apt layer below stays ours to refresh on the weekly rebuild
 # (docs/decisions/0001-own-the-installation.md).
 #
@@ -91,12 +93,12 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 # Only the extension itself crosses the stage boundary. Globbed rather than
-# copying /usr/share/postgresql/18/extension/ wholesale: the artifact image
+# copying /share/extension/ wholesale: the artifact image
 # holds only edtf's own files there today, but a glob keeps that true of
 # this image whatever the stage later contains — a directory copied whole
 # would replace this base's control files with whatever sat beside them.
-COPY --from=edtf /usr/lib/postgresql/18/lib/edtf_postgres.so /usr/lib/postgresql/18/lib/
-COPY --from=edtf /usr/share/postgresql/18/extension/edtf_postgres* /usr/share/postgresql/18/extension/
+COPY --from=edtf /lib/edtf_postgres.so /usr/lib/postgresql/18/lib/
+COPY --from=edtf /share/extension/edtf_postgres* /usr/share/postgresql/18/extension/
 
 # gosu exists to drop root→postgres; this image starts as postgres (USER
 # below), so it's dead code — and it ships with stale-Go-stdlib CVEs. Gone.
