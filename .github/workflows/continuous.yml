@@ -22,13 +22,15 @@ concurrency:
 
 jobs:
   publish:
-    uses: monumental-archive/.github/.github/workflows/continuous.yml@6d6916fcdaa4e632bd12af51e8240af6b597d75e # v1.71.1
+    uses: monumental-archive/.github/.github/workflows/continuous.yml@3e15514956c601fe255b9ab5f4f1c0663cc3db1b # v1.72.0
     with:
       smoke-test: scripts/db-image-smoke.sh
     permissions:
-      contents: read # build checks out this repository
-      packages: write # push per-arch images and the manifest list
-      id-token: write # the signer mints the Sigstore identity
-      attestations: write # the signer persists the provenance
-      artifact-metadata: write # the signer creates the storage record
+      contents: read # this repository's contents, read-only
+      packages: write # this repository's packages, read and write
+      id-token: write # an OIDC token for this run
+      attestations: write # this repository's attestations, read and write
+      artifact-metadata: write # this repository's artifact storage records, read and write
+      issues: write # the callee's report job: its workflow's red-check issue (#1887)
+      actions: read # the callee's report job: the run's job list and job logs (#1887)
 ...
