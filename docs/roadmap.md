@@ -22,11 +22,10 @@ with a deliberately fixed surface, so the honest roadmap is mostly about
   publish path's commit point rather than on pull requests (a new CVE must
   not fail an unrelated pull request; the canon's `lint:trivy` states the
   rule).
-- **Track the postgres major.** PostgreSQL 19 is the next real change to
-  this image. The bump is gated on all three extensions being available for
-  it from PGDG and on `edtf_postgres` publishing a `-pg19` image; it will
-  land as a deliberate change with the decision recorded, not as a Renovate
-  automerge.
+- **Track the postgres major.** The image moved to PostgreSQL 19 on
+  2026-11-24 (#73), by hand rather than as a Renovate automerge, once
+  PGDG carried PostGIS and pgaudit for it and `edtf_postgres` published a
+  `-pg19` image. PostgreSQL 20 takes the same route under the same gate.
 - **Finish the supply-chain scoring work.** The org's now, not this
   repo's: Scorecard runs from the canon's stub against a per-repo
   ratcheted floor in `security/scorecard-floors.txt`, REUSE compliance is

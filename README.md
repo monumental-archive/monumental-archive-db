@@ -15,7 +15,7 @@
 <!-- badges:end -->
 
 The [Monumental Archive](https://github.com/monumental-archive)'s
-PostgreSQL image: official `postgres:18` (Debian trixie) plus exactly
+PostgreSQL image: official `postgres:19` (Debian trixie) plus exactly
 three audited extensions — [PostGIS](https://postgis.net/),
 [pgaudit](https://github.com/pgaudit/pgaudit), and
 [edtf_postgres](https://github.com/monumental-archive/edtf) (native EDTF
