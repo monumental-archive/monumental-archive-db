@@ -81,7 +81,7 @@ FROM base
 # cannot use older library version 3.6.4". The two are built from one
 # source package, so one ARG is the right number of pins.
 # renovate: datasource=deb depName=postgis packageName=postgresql-19-postgis-3
-ARG POSTGIS_VERSION=3.6.4+dfsg-2.pgdg13+1
+ARG POSTGIS_VERSION=3.7.0+dfsg-1.pgdg13+2
 # renovate: datasource=deb depName=pgaudit packageName=postgresql-19-pgaudit
 ARG PGAUDIT_VERSION=19.0-1.pgdg13+1
 RUN apt-get update \
