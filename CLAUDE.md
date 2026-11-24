@@ -5,7 +5,7 @@ with code in this repository.
 
 ## What this repo is
 
-A single Docker image: official `postgres:18` (Debian trixie) plus
+A single Docker image: official `postgres:19` (Debian trixie) plus
 exactly three extensions — PostGIS, pgaudit, and edtf_postgres. There is
 no application code; the deliverables are the [Dockerfile](Dockerfile),
 the smoke test, and the supply-chain guarantees around them. It has no
@@ -66,7 +66,7 @@ added it needs `[task_config] shell = "bash -euo pipefail -c"` beside it
   this repo used to carry was deleted at the import.
 - **The edtf `FROM` line is read by two things besides BuildKit.** The
   shared build derives the release tag to verify against from its tag
-  (`1.3.4-pg18-artifact` → `refs/tags/v1.3.4`), and
+  (`2.0.0-pg19-artifact` → `refs/tags/v2.0.0`), and
   `scripts/db-image-smoke.sh` parses the same line for the expected
   extension version. Keep the `<version>-pg<major>-artifact` shape.
 - **Renovate pin convention**: apt versions live in `ARG *_VERSION=`

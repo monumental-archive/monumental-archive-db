@@ -37,7 +37,7 @@ whatever bytes they pull. An attacker who can change what `docker pull`
 returns, or what our build ingests, owns every database built from it.
 Four distinct substitution points:
 
-1. *The base image.* `postgres:18-trixie` is a mutable tag; whoever
+1. *The base image.* `postgres:19-trixie` is a mutable tag; whoever
    controls that tag controls our base.
 2. *The extension build stage.* `edtf-postgres` is published by a related
    but separate repository, with its own compromise surface.

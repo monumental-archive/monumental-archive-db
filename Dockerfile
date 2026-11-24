@@ -12,7 +12,7 @@
 # The official image is also genuinely multi-arch; postgis/postgis
 # publishes amd64 only.
 
-FROM postgres:18-trixie@sha256:2ea8630df176ad090ec92136dee850397c5af8781e4bcf2e4162593691c61bbc AS base
+FROM postgres:19-trixie@sha256:766ddae4967301b9802b341bb596905f11dd5c558149690a7a4d80c2f61bbcf9 AS base
 
 # --- edtf-postgres: prebuilt, attested, digest-pinned ----------------------
 # EDTF validation as a native extension: the same edtf-core the archive's
@@ -23,10 +23,9 @@ FROM postgres:18-trixie@sha256:2ea8630df176ad090ec92136dee850397c5af8781e4bcf2e4
 # A BUILD STAGE, never our base. This is edtf's `-artifact` image: FROM
 # scratch, holding the extension's files and nothing else. The two COPY
 # lines below read its /lib and /share/extension tree, the one layout the
-# canon keeps (.github#1298); the Debian /usr/... tree the pinned 1.3.4
-# image still carries beside it, byte-identical, leaves the artifact image
-# from the next edtf release on. It has no OS layer to inherit, and it
-# stays a stage regardless: the runtime base is ours, so
+# canon keeps (.github#1298); the Debian /usr/... tree that 1.3.x carried
+# beside it is gone from the pinned 2.0.0 image. It has no OS layer to
+# inherit, and it stays a stage regardless: the runtime base is ours, so
 # the apt layer below stays ours to refresh on the weekly rebuild
 # (docs/decisions/0001-own-the-installation.md).
 #
@@ -48,12 +47,12 @@ FROM postgres:18-trixie@sha256:2ea8630df176ad090ec92136dee850397c5af8781e4bcf2e4
 # release tag from this line's tag, so the tag must stay a version.
 #
 # The .so is compiled against one postgres minor and can need symbols an
-# older minor lacks, which the `pg18` in the tag does not say. Measured
-# 2026-11-15: 1.3.4 was built against 18.7 and fails to load on 18.6
-# ("undefined symbol: heap_datum_check"), so this pin and the base digest
-# above moved together. Nothing but the smoke test catches that — it
+# older minor lacks, which the `pg19` in the tag does not say. Measured
+# 2026-11-15 on the previous major: edtf 1.3.4 was built against 18.7 and
+# failed to load on 18.6 ("undefined symbol: heap_datum_check"), so this
+# pin and the base digest above move together. Nothing but the smoke test catches that — it
 # loads the library in the server it ships with, before any push.
-FROM ghcr.io/monumental-archive/edtf-postgres:1.3.4-pg18-artifact@sha256:6c6aa265a752e13330ab370e60eb4490b7883204a97c7dd6b546d0ea27fdc92a AS edtf
+FROM ghcr.io/monumental-archive/edtf-postgres:2.0.0-pg19-artifact@sha256:9a4b986b4b48be8b54a86fbebae598264e4a6a117b97382ec397a10018370c75 AS edtf
 
 # --- runtime ---------------------------------------------------------------
 FROM base
@@ -75,21 +74,21 @@ FROM base
 # short name is declared here, where the pin is (renovate.json).
 #
 # The -scripts package is named and pinned to the SAME version, never left
-# to apt: postgresql-18-postgis-3 depends on it unversioned, so apt
+# to apt: postgresql-19-postgis-3 depends on it unversioned, so apt
 # resolves the newest one, and PostGIS refuses CREATE EXTENSION when the
 # scripts are newer than the library. Measured 2026-11-15: library pinned
 # at 3.6.4, scripts resolved to 3.7.0, "extension scripts version 3.7.0
 # cannot use older library version 3.6.4". The two are built from one
 # source package, so one ARG is the right number of pins.
-# renovate: datasource=deb depName=postgis packageName=postgresql-18-postgis-3
+# renovate: datasource=deb depName=postgis packageName=postgresql-19-postgis-3
 ARG POSTGIS_VERSION=3.6.4+dfsg-2.pgdg13+1
-# renovate: datasource=deb depName=pgaudit packageName=postgresql-18-pgaudit
-ARG PGAUDIT_VERSION=18.0-3.pgdg13+1
+# renovate: datasource=deb depName=pgaudit packageName=postgresql-19-pgaudit
+ARG PGAUDIT_VERSION=19.0-1.pgdg13+1
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
-    "postgresql-18-postgis-3=${POSTGIS_VERSION}" \
-    "postgresql-18-postgis-3-scripts=${POSTGIS_VERSION}" \
-    "postgresql-18-pgaudit=${PGAUDIT_VERSION}" \
+    "postgresql-19-postgis-3=${POSTGIS_VERSION}" \
+    "postgresql-19-postgis-3-scripts=${POSTGIS_VERSION}" \
+    "postgresql-19-pgaudit=${PGAUDIT_VERSION}" \
   && rm -rf /var/lib/apt/lists/*
 
 # Only the extension itself crosses the stage boundary. Globbed rather than
@@ -97,8 +96,8 @@ RUN apt-get update \
 # holds only edtf's own files there today, but a glob keeps that true of
 # this image whatever the stage later contains — a directory copied whole
 # would replace this base's control files with whatever sat beside them.
-COPY --from=edtf /lib/edtf_postgres.so /usr/lib/postgresql/18/lib/
-COPY --from=edtf /share/extension/edtf_postgres* /usr/share/postgresql/18/extension/
+COPY --from=edtf /lib/edtf_postgres.so /usr/lib/postgresql/19/lib/
+COPY --from=edtf /share/extension/edtf_postgres* /usr/share/postgresql/19/extension/
 
 # gosu exists to drop root→postgres; this image starts as postgres (USER
 # below), so it's dead code — and it ships with stale-Go-stdlib CVEs. Gone.
