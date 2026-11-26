@@ -46,8 +46,11 @@ contribution door open without inviting scope creep.
   it; a contribution backed by one is welcome, held to the same bar as the
   existing three — installed from a distribution we can refresh, pinned
   under the Renovate convention, and asserted in the smoke test.
+  plpgsql_check's files came in on that bar (#86): a consumer's
+  PL/pgSQL coverage needed them, and the image carries them without
+  loading them.
 - **No version tags, no releases.** This image has no version surface of
-  its own; its "version" is the postgres major plus three extension pins.
+  its own; its "version" is the postgres major plus four extension pins.
   Consumers pin digests and Renovate resolves against the stream tag.
   Inventing releases so that a scoring check has something to read would
   be ceremony that makes the artifact worse. This is what the org's

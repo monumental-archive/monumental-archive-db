@@ -13,38 +13,44 @@ set -euo pipefail
 
 image=${1:?usage: db-image-smoke.sh <image-ref>}
 container="db-smoke-$$"
+# A second server, started the way a consumer's test stack starts it:
+# plpgsql_check preloaded and its profiler on. The shipped start must not
+# load it; this one must measure with it.
+profiled="db-smoke-profiled-$$"
 
 cleanup() {
-  docker rm -f "${container}" > /dev/null 2>&1 || true
+  docker rm -f "${container}" "${profiled}" > /dev/null 2>&1 || true
 }
 rc=0
 trap 'rc=$?; cleanup; [[ -n ${org_done:-} || ${rc} -ne 0 ]] || rc=1; exit "${rc}"' EXIT
-
-docker run -d --name "${container}" -e POSTGRES_PASSWORD=smoke "${image}" > /dev/null
 
 # The official entrypoint starts postgres TWICE on a fresh volume (a
 # temporary init server, then the real one); pg_isready alone can catch
 # the temporary one and the next psql lands in the restart gap. Require
 # the second "ready to accept connections" in the log, then pg_isready.
-ready=false
-for _ in $(seq 1 60); do
-  starts=$(docker logs "${container}" 2>&1 \
-    | grep -c 'database system is ready to accept connections' || true)
-  if [[ ${starts} -ge 2 ]] \
-    && docker exec "${container}" pg_isready -U postgres > /dev/null 2>&1; then
-    ready=true
-    break
-  fi
-  sleep 1
-done
-if [[ ${ready} != true ]]; then
-  echo "db-smoke: server never became ready" >&2
-  docker logs "${container}" >&2
+# $1 = container, $2 = what it is (named in the failure).
+await_ready() {
+  local starts
+  for _ in $(seq 1 60); do
+    starts=$(docker logs "$1" 2>&1 \
+      | grep -c 'database system is ready to accept connections' || true)
+    if [[ ${starts} -ge 2 ]] \
+      && docker exec "$1" pg_isready -U postgres > /dev/null 2>&1; then
+      return 0
+    fi
+    sleep 1
+  done
+  echo "db-smoke: FAIL — $2 never became ready" >&2
+  docker logs "$1" >&2
   exit 1
-fi
+}
 
+docker run -d --name "${container}" -e POSTGRES_PASSWORD=smoke "${image}" > /dev/null
+await_ready "${container}" "server started as shipped"
+
+# $1 = SQL; runs on the shipped server unless db= names another.
 q() {
-  docker exec "${container}" psql -U postgres -tAX -c "$1"
+  docker exec "${db:-${container}}" psql -U postgres -tAX -c "$1"
 }
 
 fail=0
@@ -87,6 +93,15 @@ for module in pgaudit pg_stat_statements; do
   esac
 done
 
+# plpgsql_check's files ship; a production start must never load them.
+case ",${loaded}," in
+  *",plpgsql_check,"*)
+    echo "db-smoke: FAIL — plpgsql_check loaded as shipped (got '${loaded}')" >&2
+    fail=1
+    ;;
+  *) echo "db-smoke: ok — plpgsql_check not loaded as shipped" ;;
+esac
+
 docker exec "${container}" psql -U postgres -qX -v ON_ERROR_STOP=1 \
   -c 'CREATE EXTENSION postgis' \
   -c 'CREATE EXTENSION pgaudit' \
@@ -118,6 +133,32 @@ if [[ -z ${expected_edtf} ]]; then
 fi
 actual_edtf=$(q "select extversion from pg_extension where extname = 'edtf_postgres'")
 assert "edtf_postgres version is the pinned one" "${expected_edtf}" "${actual_edtf}"
+
+# The consumer's switch, exactly as the README gives it: the image's own
+# CMD plus plpgsql,plpgsql_check on the preload list and the profiler on.
+# The command line is the switch — ALTER SYSTEM loses to it.
+docker run -d --name "${profiled}" -e POSTGRES_PASSWORD=smoke "${image}" \
+  postgres \
+  -c shared_preload_libraries=pg_stat_statements,pgaudit,plpgsql,plpgsql_check \
+  -c plpgsql_check.profiler=on \
+  -c wal_level=logical > /dev/null
+await_ready "${profiled}" "server with plpgsql_check preloaded"
+
+# Two functions with one body: one never called, one driven down both
+# arms of its IF. Coverage is what the org's PL/pgSQL coverage leg reads.
+docker exec "${profiled}" psql -U postgres -qX -v ON_ERROR_STOP=1 \
+  -c 'CREATE EXTENSION plpgsql_check' \
+  -c "CREATE FUNCTION smoke_uncalled(x int) RETURNS int LANGUAGE plpgsql
+      AS 'BEGIN IF x > 0 THEN RETURN 1; ELSE RETURN -1; END IF; END'" \
+  -c "CREATE FUNCTION smoke_both(x int) RETURNS int LANGUAGE plpgsql
+      AS 'BEGIN IF x > 0 THEN RETURN 1; ELSE RETURN -1; END IF; END'" \
+  -c 'SELECT smoke_both(1), smoke_both(-1)' > /dev/null
+
+uncalled=$(db=${profiled} q "select plpgsql_coverage_statements('smoke_uncalled')")
+assert "plpgsql_check: uncalled function reads statement coverage 0" \
+  "0" "${uncalled}"
+both=$(db=${profiled} q "select plpgsql_coverage_branches('smoke_both')")
+assert "plpgsql_check: both IF arms read branch coverage 1" "1" "${both}"
 
 if [[ ${fail} -ne 0 ]]; then
   exit 1

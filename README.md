@@ -22,6 +22,25 @@ three audited extensions — [PostGIS](https://postgis.net/),
 validation from the same `edtf-core` the archive's web layer runs as
 WASM, so the two can never diverge).
 
+It also carries the files of
+[plpgsql_check](https://github.com/okbob/plpgsql_check), present and
+**not loaded**: no start of the image as shipped maps it, and nothing
+creates it. It is there so a consumer's tests can measure PL/pgSQL
+coverage against the image the consumer ships. A test stack switches
+it on by starting the image with its own command — the image's `CMD`
+plus two settings:
+
+```sh
+postgres \
+  -c shared_preload_libraries=pg_stat_statements,pgaudit,plpgsql,plpgsql_check \
+  -c plpgsql_check.profiler=on \
+  -c wal_level=logical
+```
+
+A production start never does. The command line is the switch:
+`ALTER SYSTEM SET shared_preload_libraries` loses to the list the
+command line sets, so it cannot turn the profiler on.
+
 ## Where the image is published
 
 `ghcr.io/monumental-archive/monumental-archive-db`, published by the
@@ -93,7 +112,7 @@ archetype's schedule leg.
 ## Tags
 
 There are no version tags and no releases: this image has no version
-surface of its own — its "version" is the postgres major plus three
+surface of its own — its "version" is the postgres major plus four
 extension pins, and its changes are pin bumps. That is what the
 continuous archetype is for, and this repository is the org's first
 member of it.
@@ -103,10 +122,12 @@ member of it.
 `shared_preload_libraries=pg_stat_statements,pgaudit` and
 `wal_level=logical` ride the image `CMD`, so every consumer — compose
 stacks, throwaway schema-tooling containers, production — behaves
-identically. `/docker-entrypoint-initdb.d` is emptied (the consuming
-archive is migration-defined) and the server starts as the postgres
-user directly — `USER 999`, numeric so an orchestrator enforcing
-runAsNonRoot can verify it — with `gosu` removed as dead code.
+identically. plpgsql_check is deliberately not on that list; a test
+stack adds it on its own command line (above).
+`/docker-entrypoint-initdb.d` is emptied (the consuming archive is
+migration-defined) and the server starts as the postgres user directly
+— `USER 999`, numeric so an orchestrator enforcing runAsNonRoot can
+verify it — with `gosu` removed as dead code.
 
 ## Development
 

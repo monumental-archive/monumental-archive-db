@@ -6,7 +6,9 @@ with code in this repository.
 ## What this repo is
 
 A single Docker image: official `postgres:19` (Debian trixie) plus
-exactly three extensions — PostGIS, pgaudit, and edtf_postgres. There is
+exactly three extensions — PostGIS, pgaudit, and edtf_postgres — and
+plpgsql_check's files, which no start of the image as shipped loads
+(a consumer's test stack switches it on; README). There is
 no application code; the deliverables are the [Dockerfile](Dockerfile),
 the smoke test, and the supply-chain guarantees around them. It has no
 version surface — no tags, no releases — which is why it is the org's
@@ -80,7 +82,9 @@ added it needs `[task_config] shell = "bash -euo pipefail -c"` beside it
 - **Baked server config**: `CMD` carries
   `shared_preload_libraries=pg_stat_statements,pgaudit` and
   `wal_level=logical` (ElectricSQL logical replication) so every
-  consumer behaves identically. `/docker-entrypoint-initdb.d` is emptied
+  consumer behaves identically. plpgsql_check stays off that list: the
+  smoke test asserts the shipped start does not load it, and that a
+  start with it preloaded measures coverage. `/docker-entrypoint-initdb.d` is emptied
   (the consuming archive is migration-defined) and gosu is removed; the
   server starts directly as the postgres user, declared numerically
   (`USER 999`) so an orchestrator enforcing runAsNonRoot can verify it.
