@@ -1,6 +1,7 @@
 # The Monumental Archive's database image: official Postgres plus audited
-# extensions (PostGIS, pgaudit, edtf_postgres). Renovate manages the FROM
-# digest. Base is Debian 13 (trixie).
+# extensions (PostGIS, pgaudit, edtf_postgres), and plpgsql_check's files,
+# which nothing here loads. Renovate manages the FROM digest. Base is
+# Debian 13 (trixie).
 #
 # Why the official postgres image rather than postgis/postgis: PostGIS is
 # installed HERE, at our build time, so its dependencies resolve fresh from
@@ -84,11 +85,22 @@ FROM base
 ARG POSTGIS_VERSION=3.7.0+dfsg-1.pgdg13+2
 # renovate: datasource=deb depName=pgaudit packageName=postgresql-19-pgaudit
 ARG PGAUDIT_VERSION=19.0-1.pgdg13+1
+# plpgsql_check: files on disk for a consumer's tests, loaded by nothing
+# this image starts. The CMD below does not preload it and no init script
+# creates it; a consumer's test stack switches it on with its own command
+# line (README, the extension list), so production never
+# maps a profiler it does not use. Carried here rather than layered on by
+# each consumer: that layer measured 38-53 s per uncached test run, with
+# the package mirror in the test's path, and the image it tested was not
+# the image it shipped (#86).
+# renovate: datasource=deb depName=plpgsql-check packageName=postgresql-19-plpgsql-check
+ARG PLPGSQL_CHECK_VERSION=2.10.16-1.pgdg13+2
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
     "postgresql-19-postgis-3=${POSTGIS_VERSION}" \
     "postgresql-19-postgis-3-scripts=${POSTGIS_VERSION}" \
     "postgresql-19-pgaudit=${PGAUDIT_VERSION}" \
+    "postgresql-19-plpgsql-check=${PLPGSQL_CHECK_VERSION}" \
   && rm -rf /var/lib/apt/lists/*
 
 # Only the extension itself crosses the stage boundary. Globbed rather than
@@ -108,7 +120,8 @@ RUN rm -f /docker-entrypoint-initdb.d/* /usr/local/bin/gosu
 
 # Preloads baked into the image so every consumer (compose stacks, schema
 # tooling's throwaway dev containers, production) behaves identically:
-# pgaudit and pg_stat_statements require shared preload.
+# pgaudit and pg_stat_statements require shared preload. plpgsql_check is
+# deliberately absent from the list: see its ARG above.
 # wal_level=logical: the archive's live read path is logical replication
 # (ElectricSQL); baked here so every consumer matches production exactly.
 CMD ["postgres", \

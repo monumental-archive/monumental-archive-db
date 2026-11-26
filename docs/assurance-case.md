@@ -23,7 +23,7 @@ not is the defect it exists to prevent. Everything below that describes
 the publish path describes the archetype this repository calls.
 
 The unusual thing about this project is that it contains no application
-code. It is an *assembly*: a Dockerfile, three extension pins, and a
+code. It is an *assembly*: a Dockerfile, four extension pins, and a
 pipeline that proves what it publishes. So the entire attack surface worth
 arguing about is the supply chain, and this document spends its length
 there rather than on input handling that does not exist here.
@@ -41,7 +41,8 @@ Four distinct substitution points:
    controls that tag controls our base.
 2. *The extension build stage.* `edtf-postgres` is published by a related
    but separate repository, with its own compromise surface.
-3. *The apt layer.* PostGIS and pgaudit come from PGDG at our build time.
+3. *The apt layer.* PostGIS, pgaudit and plpgsql_check come from PGDG at our
+   build time.
 4. *The published manifest.* An attacker with registry write could push a
    different image under our tag.
 
@@ -92,7 +93,7 @@ trail without any error — a silent failure of a security control.
   not of a local twin that was never published.
 - **The build-stage boundary.** `edtf-postgres` is a separate trust domain.
   It is crossed by exactly two `COPY --from` globs
-  ([Dockerfile:98-99](../Dockerfile#L98-L99)) — the `.so` and the
+  ([Dockerfile:111-112](../Dockerfile#L111-L112)) — the `.so` and the
   `edtf_postgres*` control/SQL files — rather than by `FROM`, and
   deliberately not by copying the extension directory wholesale, so
   nothing else that stage ever holds can displace this base's control

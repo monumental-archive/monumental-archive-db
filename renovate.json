@@ -20,9 +20,13 @@
       "dependencyDashboardApproval": true
     },
     {
-      "description": "PGDG apt pins. The deb datasource requires an explicit index URL (suite/components/binaryArch); it is context for Renovate, not an endpoint it calls. binaryArch=amd64 picks the index to read versions from \u2014 PGDG publishes the same version string for every architecture, and the Dockerfile pin is arch-independent. Repo identity: the package names are this image's three extensions.",
+      "description": "PGDG apt pins. The deb datasource requires an explicit index URL (suite/components/binaryArch); it is context for Renovate, not an endpoint it calls. binaryArch=amd64 picks the index to read versions from \u2014 PGDG publishes the same version string for every architecture, and the Dockerfile pin is arch-independent. Repo identity: the package names are this image's PGDG packages \u2014 two extensions it loads and plpgsql_check, whose files it carries unloaded.",
       "matchDatasources": ["deb"],
-      "matchPackageNames": ["postgresql-19-postgis-3", "postgresql-19-pgaudit"],
+      "matchPackageNames": [
+        "postgresql-19-postgis-3",
+        "postgresql-19-pgaudit",
+        "postgresql-19-plpgsql-check"
+      ],
       "registryUrls": [
         "https://apt.postgresql.org/pub/repos/apt?suite=trixie-pgdg&components=main&binaryArch=amd64"
       ]
